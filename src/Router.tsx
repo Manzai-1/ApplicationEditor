@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import Layout from '@/Layout'
+import { ProtectedRoute } from '@/components/ProtectedRoute'
 import Login from '@/pages/Login'
 import Register from '@/pages/Register'
 import Verify from '@/pages/Verify'
@@ -16,8 +17,8 @@ function Router() {
         <Route path="/verify" element={<Verify />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/cv" element={<CV />} />
-        <Route path="/" element={<CV />} />
+        <Route path="/cv" element={<ProtectedRoute><CV /></ProtectedRoute>} />
+        <Route path="/" element={<ProtectedRoute><CV /></ProtectedRoute>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Layout>
