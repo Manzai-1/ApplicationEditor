@@ -1,12 +1,15 @@
 import { useState, useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useAuth } from '@/hooks/useAuth'
 import { cn } from '@/lib/utils'
 
 function UserMenu() {
+  const navigate = useNavigate()
+  const { user, signOut } = useAuth()
   const [isOpen, setIsOpen] = useState(false)
   const [theme, setTheme] = useState<'light' | 'dark'>('light')
   const dropdownRef = useRef<HTMLDivElement>(null)
 
-  // Load theme from localStorage on mount
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null
     const preferredTheme = savedTheme || 'light'
@@ -19,7 +22,6 @@ function UserMenu() {
     }
   }, [])
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -33,7 +35,7 @@ function UserMenu() {
     }
   }, [isOpen])
 
-  const toggleTheme = () => {
+  function toggleTheme() {
     const newTheme = theme === 'light' ? 'dark' : 'light'
     setTheme(newTheme)
     localStorage.setItem('theme', newTheme)
@@ -47,9 +49,14 @@ function UserMenu() {
     setIsOpen(false)
   }
 
+  async function handleSignOut() {
+    setIsOpen(false)
+    await signOut()
+    navigate('/login')
+  }
+
   return (
     <div className="relative" ref={dropdownRef}>
-      {/* User icon trigger */}
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center justify-center h-10 w-10 rounded-full bg-secondary hover:bg-accent transition-colors"
@@ -72,15 +79,19 @@ function UserMenu() {
         </svg>
       </button>
 
-      {/* Dropdown menu */}
       {isOpen && (
         <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-popover border border-border">
           <div className="py-1" role="menu">
+            {user && (
+              <div className="px-4 py-2 text-sm text-muted-foreground border-b border-border truncate">
+                {user.email}
+              </div>
+            )}
             <button
               onClick={toggleTheme}
               className={cn(
-                "w-full px-4 py-2 text-left text-sm hover:bg-accent transition-colors",
-                "flex items-center justify-between"
+                'w-full px-4 py-2 text-left text-sm hover:bg-accent transition-colors',
+                'flex items-center justify-between'
               )}
               role="menuitem"
             >
@@ -111,6 +122,15 @@ function UserMenu() {
                 )}
               </svg>
             </button>
+            {user && (
+              <button
+                onClick={handleSignOut}
+                className="w-full px-4 py-2 text-left text-sm text-foreground hover:bg-accent transition-colors"
+                role="menuitem"
+              >
+                Sign out
+              </button>
+            )}
           </div>
         </div>
       )}

@@ -1,6 +1,8 @@
 import { ReactNode } from 'react'
 import { useLocation } from 'react-router-dom'
-import Header from './components/layout/Header'
+import Header from '@/components/layout/Header'
+
+const AUTH_ROUTES = ['/login', '/register', '/verify', '/forgot-password', '/reset-password']
 
 interface LayoutProps {
   children: ReactNode
@@ -8,10 +10,7 @@ interface LayoutProps {
 
 function Layout({ children }: LayoutProps) {
   const location = useLocation()
-
-  // Routes where Header should NOT be shown
-  const noHeaderRoutes = ['/login', '/register', '/callback']
-  const shouldShowHeader = !noHeaderRoutes.includes(location.pathname)
+  const shouldShowHeader = !AUTH_ROUTES.includes(location.pathname)
 
   return (
     <div className="min-h-screen bg-background text-foreground">

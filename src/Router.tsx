@@ -1,9 +1,12 @@
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import Layout from '@/Layout'
 import Login from '@/pages/Login'
 import Register from '@/pages/Register'
-import Callback from '@/pages/Callback'
+import Verify from '@/pages/Verify'
+import ForgotPassword from '@/pages/ForgotPassword'
+import ResetPassword from '@/pages/ResetPassword'
 import Home from '@/pages/Home'
+import { ProtectedRoute } from '@/components/ProtectedRoute'
 
 function Router() {
   return (
@@ -11,8 +14,18 @@ function Router() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/callback" element={<Callback />} />
-        <Route path="/" element={<Home />} />
+        <Route path="/verify" element={<Verify />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <Home />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Layout>
   )
