@@ -6,6 +6,7 @@ import Verify from '@/pages/Verify'
 import ForgotPassword from '@/pages/ForgotPassword'
 import ResetPassword from '@/pages/ResetPassword'
 import Home from '@/pages/Home'
+import CV from '@/pages/CV/CV'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 
 function Router() {
@@ -17,14 +18,8 @@ function Router() {
         <Route path="/verify" element={<Verify />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute>
-              <Home />
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/cv" element={<CV />} />
+        <Route path="/" element={<CV />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Layout>
