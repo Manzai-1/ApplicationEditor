@@ -1,15 +1,15 @@
-import type { Certification } from '@/types/cv'
+import type { CertificationsData } from '@/types/cv'
 
 interface CertificationsSectionProps {
-  certifications: Certification[]
+  data: CertificationsData
 }
 
-function CertificationsSection({ certifications }: CertificationsSectionProps) {
+function CertificationsSection({ data }: CertificationsSectionProps) {
   return (
     <section>
       <h2 className="text-2xl font-semibold text-foreground mb-3">Certifications</h2>
       <div className="space-y-1">
-        {certifications.map((cert) => (
+        {data.certifications.map((cert) => (
           <p key={cert.title} className="text-foreground">
             {cert.title}
           </p>

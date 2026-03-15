@@ -5,9 +5,7 @@ import Register from '@/pages/Register'
 import Verify from '@/pages/Verify'
 import ForgotPassword from '@/pages/ForgotPassword'
 import ResetPassword from '@/pages/ResetPassword'
-import Home from '@/pages/Home'
 import CV from '@/pages/CV/CV'
-import { ProtectedRoute } from '@/components/ProtectedRoute'
 
 function Router() {
   return (

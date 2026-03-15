@@ -1,28 +1,28 @@
-import type { UserProfile } from '@/types/cv'
+import type { ProfileData } from '@/types/cv'
 
 interface ProfileSectionProps {
-  profile: UserProfile
+  data: ProfileData
 }
 
-function ProfileSection({ profile }: ProfileSectionProps) {
+function ProfileSection({ data }: ProfileSectionProps) {
   return (
     <section>
-      <h1 className="text-3xl font-bold text-foreground">{profile.name}</h1>
-      <p className="text-xl text-foreground mb-4">{profile.title}</p>
+      <h1 className="text-3xl font-bold text-foreground">{data.name}</h1>
+      <p className="text-xl text-foreground mb-4">{data.title}</p>
       <div className="space-y-1 text-sm text-foreground">
-        <p>Email: {profile.email}</p>
-        <p>Phone: {profile.phone.display}</p>
-        <p>Location: {profile.location}</p>
+        <p>Email: {data.email}</p>
+        <p>Phone: {data.phone.display}</p>
+        <p>Location: {data.location}</p>
         <p>
           LinkedIn:{' '}
-          <a href={profile.linkedin.url} className="hover:underline">
-            {profile.linkedin.url}
+          <a href={data.linkedin.url} className="hover:underline">
+            {data.linkedin.url}
           </a>
         </p>
         <p>
           GitHub:{' '}
-          <a href={profile.github.url} className="hover:underline">
-            {profile.github.url}
+          <a href={data.github.url} className="hover:underline">
+            {data.github.url}
           </a>
         </p>
       </div>

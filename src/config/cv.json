@@ -1,0 +1,136 @@
+{
+  "profile": {
+    "name": "Mansoor Zainudini",
+    "title": "Fullstack Developer",
+    "email": "Mansoor.Zainudini@gmail.com",
+    "phone": { "raw": "+46736698073", "display": "+46 (73) 669-8073" },
+    "location": "Stockholm, Sweden",
+    "linkedin": { "url": "https://www.linkedin.com/in/mansoor-zainudini/", "display": "LinkedIn" },
+    "github": { "url": "https://github.com/Manzai-1", "display": "GitHub" }
+  },
+  "about": {
+    "text": "I am a self-driven developer with a background in operations and project leadership, known for bringing a positive and curious mindset to any team. I grew into IT by solving real business problems and building tools that improved workflows and efficiency. I am structured, hands-on, and comfortable taking responsibility from idea to delivery."
+  },
+  "skills": {
+    "skills": [
+      {
+        "header": "Languages",
+        "items": ["C", "C#", "Python", "Solidity", "JavaScript", "TypeScript", "SQL"]
+      },
+      {
+        "header": "Technologies",
+        "items": ["React", "Node.js", "Express.js", "REST APIs", "GraphQL", "Hardhat, Ethereum", "Git", "Linux"]
+      },
+      {
+        "header": "Databases",
+        "items": ["PostgreSQL", "Firestore", "Microsoft SQL Server", "Microsoft Access", "MySQL", "SQLite", "MongoDB"]
+      },
+      {
+        "header": "Soft skills",
+        "items": ["Problemsolver", "Structured", "Hands-on", "Adaptable", "Team player", "Leadership"]
+      }
+    ]
+  },
+  "languages": {
+    "languages": [
+      { "language": "English", "level": "Fluent (spoken and written)" },
+      { "language": "Swedish", "level": "Fluent (spoken and written)" },
+      { "language": "Balochi", "level": "Native" }
+    ]
+  },
+  "experiences": {
+    "experiences": [
+      {
+        "title": "Internship",
+        "company": "Artscape",
+        "year": "2026",
+        "description": "Entrusted to independently improve their web3 art-print platform, delivering UX enhancements and new features.",
+        "highlights": []
+      },
+      {
+        "title": "Internship",
+        "company": "Mundus",
+        "year": "2025",
+        "description": "Collaborated with two classmates to deliver a client project for Mundus International, acting as a small consulting team to design and develop an AI-powered news aggregation platform.",
+        "highlights": []
+      },
+      {
+        "title": "IT System Analyst",
+        "company": "DANX",
+        "year": "2020 – 2022",
+        "description": "Architectural and support role within IT, bridging technical and operational teams while coordinating system development and rollouts.",
+        "highlights": [
+          {
+            "title": "Shipment Data Standardization and Traceability System",
+            "description": "Led requirements analysis and planning for a company-wide data standardization initiative, defining a relational model that bridges systems and departments by linking shipment, customer, vehicle, driver, and invoicing data."
+          }
+        ]
+      },
+      {
+        "title": "Project Manager",
+        "company": "DANX",
+        "year": "2017 – 2020",
+        "description": "Led warehouse and IT projects from requirements gathering to implementation, coordinating client and internal stakeholders and ensuring clear communication throughout delivery.",
+        "highlights": [
+          {
+            "title": "PUDO Android App – Design and project leadership",
+            "description": "Designed and pitched an Android application for PUDO (pickup/drop-off) locations to scan shipments, capture signatures, and sync status data with internal systems. Coordinated development, procured hardware, and led the rollout, enabling the use of non-standard locations as PUDO partners while ensuring process compliance and real-time tracking."
+          },
+          {
+            "title": "Internal WMS – Design and project leadership",
+            "description": "Authored requirement specifications for an internal warehouse management system and oversaw development and rollout across Nordic warehouses."
+          }
+        ]
+      },
+      {
+        "title": "FSL / RDC Manager",
+        "company": "DANX",
+        "year": "2014 – 2020",
+        "description": "Led hiring and supervision of warehouse staff across remote and central locations. Oversaw operational expansion, including onboarding new clients and establishing logistics sites nationwide. Developed internal software tools and collaborated with IT to improve quality and productivity.",
+        "highlights": [
+          {
+            "title": "KPI reporting prototype adopted across Nordics",
+            "description": "Developed prototype software to improve KPI report generation and customer service workflow. It was very well received and deployed across all Nordic customer service departments, significantly reducing manual work and improving report accuracy and consistency."
+          },
+          {
+            "title": "KPI reason-code automation tool (.NET)",
+            "description": "Developed a tool enabling control tower staff to insert standardized KPI reason codes via keyboard shortcuts and quick-access GUI, ensuring consistent formatting and accuracy."
+          },
+          {
+            "title": "Express order monitoring and alert system",
+            "description": "Developed a data-mining tool for an enterprise terminal system that detected express orders and automatically notified on-call staff via email and SMS, improving SLA compliance and eliminating the need for 24/7 on-site monitoring."
+          },
+          {
+            "title": "WMS monitoring dashboard",
+            "description": "Developed a web parsing tool to automatically track inbound and outbound order status across multiple WMS (warehouse management systems) and aggregate data into regional dashboards, reducing administrative workload and improving SLA compliance."
+          }
+        ]
+      }
+    ]
+  },
+  "education": {
+    "education": [
+      {
+        "title": "Full-stack and Blockchain development, Medieinstitutet",
+        "year": "2024 – 2026",
+        "highlights": [
+          {
+            "title": "Exam project",
+            "description": "I created and followed a five-week development plan to build and launch a Web3 platform successfully."
+          },
+          {
+            "title": "Block & Order Hackathon, Amsterdam blockchain week",
+            "description": "Participated in a 36-hour hackathon focused on AI-driven fraud detection and financial crime prevention."
+          }
+        ]
+      }
+    ]
+  },
+  "certifications": {
+    "certifications": [
+      { "title": "CS50 Introduction to Computer Science, HarvardX" },
+      { "title": "Management Development Programme, DANX" },
+      { "title": "Welcome to leadership, The Business Leadership Academy" }
+    ]
+  }
+}
