@@ -11,7 +11,7 @@ function EducationSection({ education }: EducationSectionProps) {
       <div className="space-y-6">
         {education.map((edu) => (
           <div key={edu.title} className="grid grid-cols-[120px_1fr] gap-x-3">
-            <span className="text-sm font-medium text-muted-foreground">{edu.year}</span>
+            <span className="text-sm font-medium text-foreground">{edu.year}</span>
             <div>
               <h3 className="text-lg font-semibold text-foreground">{edu.title}</h3>
               {edu.highlights.length > 0 && (
@@ -19,7 +19,7 @@ function EducationSection({ education }: EducationSectionProps) {
                   {edu.highlights.map((highlight) => (
                     <div key={highlight.title}>
                       <p className="font-bold text-foreground mb-0.5">{highlight.title}</p>
-                      <p className="text-muted-foreground leading-relaxed">{highlight.description}</p>
+                      <p className="text-foreground leading-relaxed">{highlight.description}</p>
                     </div>
                   ))}
                 </div>

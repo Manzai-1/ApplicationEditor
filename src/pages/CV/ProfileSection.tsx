@@ -8,8 +8,8 @@ function ProfileSection({ profile }: ProfileSectionProps) {
   return (
     <section>
       <h1 className="text-3xl font-bold text-foreground">{profile.name}</h1>
-      <p className="text-xl text-muted-foreground mb-4">{profile.title}</p>
-      <div className="space-y-1 text-sm text-muted-foreground">
+      <p className="text-xl text-foreground mb-4">{profile.title}</p>
+      <div className="space-y-1 text-sm text-foreground">
         <p>Email: {profile.email}</p>
         <p>Phone: {profile.phone.display}</p>
         <p>Location: {profile.location}</p>

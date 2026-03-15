@@ -10,7 +10,7 @@ function CertificationsSection({ certifications }: CertificationsSectionProps) {
       <h2 className="text-2xl font-semibold text-foreground mb-3">Certifications</h2>
       <div className="space-y-1">
         {certifications.map((cert) => (
-          <p key={cert.title} className="text-muted-foreground">
+          <p key={cert.title} className="text-foreground">
             {cert.title}
           </p>
         ))}

@@ -14,7 +14,7 @@ function LanguagesSection({ languages }: LanguagesSectionProps) {
             <span key={`${lang.language}-name`} className="font-medium text-foreground">
               {lang.language}
             </span>
-            <span key={`${lang.language}-level`} className="text-muted-foreground">
+            <span key={`${lang.language}-level`} className="text-foreground">
               {lang.level}
             </span>
           </>

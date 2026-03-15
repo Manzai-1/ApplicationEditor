@@ -12,7 +12,7 @@ function SkillsSection({ skills }: SkillsSectionProps) {
         {skills.map((skill) => (
           <p key={skill.header}>
             <span className="font-semibold text-foreground">{skill.header}:</span>{' '}
-            <span className="text-muted-foreground">{skill.items.join(', ')}</span>
+            <span className="text-foreground">{skill.items.join(', ')}</span>
           </p>
         ))}
       </div>
