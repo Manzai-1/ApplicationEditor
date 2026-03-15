@@ -64,3 +64,34 @@ export interface Certification {
 export interface CertificationsData {
   certifications: Certification[]
 }
+
+// API Response Types
+export interface CVListItem {
+  id: string
+  name: string
+  created_at: string
+  updated_at: string
+}
+
+export interface ApiComponent<T> {
+  id: string
+  content: T
+  sort_order: number
+}
+
+export interface ApiCV {
+  id: string
+  name: string
+  about: ApiComponent<{ text: string }>[]
+  skills: ApiComponent<Skill>[]
+  languages: ApiComponent<Language>[]
+  experiences: ApiComponent<Experience>[]
+  education: ApiComponent<Education>[]
+  certifications: ApiComponent<Certification>[]
+}
+
+export interface ApiResponse<T> {
+  status: 'success' | 'error'
+  data?: T
+  message?: string
+}

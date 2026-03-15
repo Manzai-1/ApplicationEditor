@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, type ReactNode } from 'react'
+import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react'
 import type {
   ProfileData,
   AboutData,
@@ -7,17 +7,31 @@ import type {
   ExperiencesData,
   EducationData,
   CertificationsData,
+  CVListItem,
 } from '@/types/cv'
-import cvData from '@/config/cv.json'
+import { getProfile, updateProfile as updateProfileApi } from '@/services/profile'
+import { getCVList, getCV, transformApiCV, updateComponent } from '@/services/cv'
 
 interface CVDataContextValue {
-  profileData: ProfileData
-  aboutData: AboutData
-  skillsData: SkillsData
-  languagesData: LanguagesData
-  experiencesData: ExperiencesData
-  educationData: EducationData
-  certificationsData: CertificationsData
+  // Loading states
+  isLoading: boolean
+  error: string | null
+
+  // CV list
+  cvList: CVListItem[]
+  selectedCvId: string | null
+  selectCV: (cvId: string) => Promise<void>
+
+  // Data
+  profileData: ProfileData | null
+  aboutData: AboutData | null
+  skillsData: SkillsData | null
+  languagesData: LanguagesData | null
+  experiencesData: ExperiencesData | null
+  educationData: EducationData | null
+  certificationsData: CertificationsData | null
+
+  // Update functions
   updateProfile: (data: ProfileData) => Promise<void>
   updateAbout: (data: AboutData) => Promise<void>
   updateSkills: (data: SkillsData) => Promise<void>
@@ -25,28 +39,105 @@ interface CVDataContextValue {
   updateExperiences: (data: ExperiencesData) => Promise<void>
   updateEducation: (data: EducationData) => Promise<void>
   updateCertifications: (data: CertificationsData) => Promise<void>
+
+  // Reload
+  refreshCV: () => Promise<void>
 }
 
 const CVDataContext = createContext<CVDataContextValue | null>(null)
 
 export function CVDataProvider({ children }: { children: ReactNode }) {
-  const [profileData, setProfileData] = useState<ProfileData>(cvData.profile)
-  const [aboutData, setAboutData] = useState<AboutData>(cvData.about)
-  const [skillsData, setSkillsData] = useState<SkillsData>(cvData.skills)
-  const [languagesData, setLanguagesData] = useState<LanguagesData>(cvData.languages)
-  const [experiencesData, setExperiencesData] = useState<ExperiencesData>(cvData.experiences)
-  const [educationData, setEducationData] = useState<EducationData>(cvData.education)
-  const [certificationsData, setCertificationsData] = useState<CertificationsData>(cvData.certifications)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  const [cvList, setCvList] = useState<CVListItem[]>([])
+  const [selectedCvId, setSelectedCvId] = useState<string | null>(null)
+
+  const [profileData, setProfileData] = useState<ProfileData | null>(null)
+  const [aboutData, setAboutData] = useState<(AboutData & { _id?: string }) | null>(null)
+  const [skillsData, setSkillsData] = useState<SkillsData | null>(null)
+  const [languagesData, setLanguagesData] = useState<LanguagesData | null>(null)
+  const [experiencesData, setExperiencesData] = useState<ExperiencesData | null>(null)
+  const [educationData, setEducationData] = useState<EducationData | null>(null)
+  const [certificationsData, setCertificationsData] = useState<CertificationsData | null>(null)
+
+  const loadCV = useCallback(async (cvId: string) => {
+    const apiCV = await getCV(cvId)
+    const transformed = transformApiCV(apiCV)
+    setAboutData(transformed.aboutData)
+    setSkillsData(transformed.skillsData)
+    setLanguagesData(transformed.languagesData)
+    setExperiencesData(transformed.experiencesData)
+    setEducationData(transformed.educationData)
+    setCertificationsData(transformed.certificationsData)
+  }, [])
+
+  const selectCV = useCallback(async (cvId: string) => {
+    setIsLoading(true)
+    setError(null)
+    try {
+      await loadCV(cvId)
+      setSelectedCvId(cvId)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load CV')
+    } finally {
+      setIsLoading(false)
+    }
+  }, [loadCV])
+
+  const refreshCV = useCallback(async () => {
+    if (!selectedCvId) return
+    setIsLoading(true)
+    setError(null)
+    try {
+      await loadCV(selectedCvId)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to refresh CV')
+    } finally {
+      setIsLoading(false)
+    }
+  }, [selectedCvId, loadCV])
+
+  // Initial load
+  useEffect(() => {
+    async function init() {
+      setIsLoading(true)
+      setError(null)
+      try {
+        const [profile, cvs] = await Promise.all([getProfile(), getCVList()])
+        setProfileData(profile)
+        setCvList(cvs)
+
+        if (cvs.length > 0) {
+          const firstCvId = cvs[0].id
+          await loadCV(firstCvId)
+          setSelectedCvId(firstCvId)
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load data')
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    init()
+  }, [loadCV])
 
   const updateProfile = async (data: ProfileData): Promise<void> => {
-    setProfileData(data)
+    const updated = await updateProfileApi(data)
+    setProfileData(updated)
   }
 
   const updateAbout = async (data: AboutData): Promise<void> => {
-    setAboutData(data)
+    const current = aboutData as AboutData & { _id?: string }
+    if (current?._id) {
+      await updateComponent('about', current._id, { text: data.text })
+    }
+    setAboutData({ ...data, _id: current?._id })
   }
 
   const updateSkills = async (data: SkillsData): Promise<void> => {
+    // For now, update local state - full sync requires more complex diffing
+    // This will be enhanced when we add create/delete/reorder support
     setSkillsData(data)
   }
 
@@ -69,6 +160,11 @@ export function CVDataProvider({ children }: { children: ReactNode }) {
   return (
     <CVDataContext.Provider
       value={{
+        isLoading,
+        error,
+        cvList,
+        selectedCvId,
+        selectCV,
         profileData,
         aboutData,
         skillsData,
@@ -83,6 +179,7 @@ export function CVDataProvider({ children }: { children: ReactNode }) {
         updateExperiences,
         updateEducation,
         updateCertifications,
+        refreshCV,
       }}
     >
       {children}

@@ -39,7 +39,7 @@ interface CVEditModalProps {
   onClose: () => void
   section: string
   data: SectionData
-  onSave: (data: SectionData) => void
+  onSave: (data: SectionData) => Promise<void>
 }
 
 const sectionTitles: Record<string, string> = {
@@ -54,14 +54,25 @@ const sectionTitles: Record<string, string> = {
 
 function CVEditModal({ open, onClose, section, data, onSave }: CVEditModalProps) {
   const [editedData, setEditedData] = useState<SectionData>(data)
+  const [isSaving, setIsSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
 
   useEffect(() => {
     setEditedData(data)
+    setSaveError(null)
   }, [data])
 
-  const handleSave = () => {
-    onSave(editedData)
-    onClose()
+  const handleSave = async () => {
+    setIsSaving(true)
+    setSaveError(null)
+    try {
+      await onSave(editedData)
+      onClose()
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : 'Failed to save')
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   const handleFieldChange = (key: string, value: unknown) => {
@@ -127,6 +138,7 @@ function CVEditModal({ open, onClose, section, data, onSave }: CVEditModalProps)
               type="button"
               onClick={onClose}
               className="p-1.5 rounded hover:bg-muted transition-colors"
+              disabled={isSaving}
             >
               <X className="w-4 h-4" />
             </button>
@@ -137,11 +149,17 @@ function CVEditModal({ open, onClose, section, data, onSave }: CVEditModalProps)
           {fields.map(renderField)}
         </div>
 
+        {saveError && (
+          <p className="text-sm text-destructive px-1">{saveError}</p>
+        )}
+
         <DialogFooter className="flex-shrink-0">
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="outline" onClick={onClose} disabled={isSaving}>
             Cancel
           </Button>
-          <Button onClick={handleSave}>Save</Button>
+          <Button onClick={handleSave} disabled={isSaving}>
+            {isSaving ? 'Saving...' : 'Save'}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
