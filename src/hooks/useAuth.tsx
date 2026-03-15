@@ -27,8 +27,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' && session?.access_token) {
-        const user = await authService.createSession(session.access_token)
-        setUser(user)
+        try {
+          const user = await authService.createSession(session.access_token)
+          setUser(user)
+        } catch {
+          await supabase.auth.signOut()
+          setUser(null)
+        }
       }
 
       if (event === 'SIGNED_OUT') {

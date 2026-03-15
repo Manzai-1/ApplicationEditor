@@ -37,7 +37,14 @@ function Login() {
     }
 
     if (data.session?.access_token) {
-      await authService.createSession(data.session.access_token)
+      try {
+        await authService.createSession(data.session.access_token)
+      } catch (err) {
+        await supabase.auth.signOut()
+        setError('Failed to establish session')
+        setLoading(false)
+        return
+      }
     }
 
     navigate('/', { replace: true })

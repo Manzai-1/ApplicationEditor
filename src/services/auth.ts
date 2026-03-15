@@ -1,3 +1,4 @@
+import { supabase } from '@/lib/supabase'
 import { authConfig } from '@/config/auth'
 import type { User } from '@/types/auth'
 
@@ -14,6 +15,32 @@ export async function createSession(accessToken: string): Promise<User> {
   if (!response.ok) {
     const error = await response.json()
     throw new Error(error.message || 'Failed to create session')
+  }
+
+  return response.json()
+}
+
+export async function createBackendSession(): Promise<User> {
+  const { data: { session } } = await supabase.auth.getSession()
+
+  if (!session?.access_token) {
+    throw new Error('No active Supabase session')
+  }
+
+  const response = await fetch(`${apiBaseUrl}/auth/session`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ accessToken: session.access_token }),
+  })
+
+  if (response.status === 401 || response.status === 400) {
+    await supabase.auth.signOut()
+    throw new Error('Invalid session - signed out')
+  }
+
+  if (!response.ok) {
+    throw new Error('Failed to create backend session')
   }
 
   return response.json()

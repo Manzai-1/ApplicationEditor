@@ -51,6 +51,7 @@ function Verify() {
 
     if (verifyError) {
       setError(verifyError.message)
+      setOtp('')
       setLoading(false)
       return
     }
@@ -66,12 +67,18 @@ function Verify() {
     }
 
     if (data.session?.access_token) {
-      // await authService.createSession(data.session.access_token)
-      console.log('OTP verified!', data);
+      try {
+        await authService.createSession(data.session.access_token)
+      } catch {
+        await supabase.auth.signOut()
+        setError('Failed to establish session. Please try again.')
+        setOtp('')
+        setLoading(false)
+        return
+      }
     }
 
     navigate('/', { replace: true })
-    setLoading(false)
   }
 
   async function handleResend() {
@@ -117,6 +124,16 @@ function Verify() {
               disabled={loading}
               error={!!error}
             />
+
+            {otp.length === authConfig.otpLength && (
+              <Button
+                onClick={() => handleVerify(otp)}
+                disabled={loading}
+                className="w-full"
+              >
+                {loading ? 'Verifying...' : 'Verify'}
+              </Button>
+            )}
 
             {error && (
               <p className="text-sm text-destructive text-center">{error}</p>
