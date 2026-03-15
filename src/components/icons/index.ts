@@ -1,1 +1,1 @@
-export { Pencil, Plus, Trash2, GripVertical, X } from 'lucide-react'
+export { Pencil, Plus, Trash2, ChevronUp, ChevronDown, X } from 'lucide-react'

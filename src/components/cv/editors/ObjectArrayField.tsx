@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button'
-import { Plus, Trash2, GripVertical } from '@/components/icons'
+import { Plus, Trash2, ChevronUp, ChevronDown } from '@/components/icons'
 import StringField from './StringField'
 import TextField from './TextField'
 import ArrayField from './ArrayField'
@@ -110,7 +110,7 @@ function ObjectArrayField({ label, value, fields, onChange, error }: ObjectArray
                   disabled={index === 0}
                   className="p-0.5 text-muted-foreground hover:text-foreground disabled:opacity-30"
                 >
-                  <GripVertical className="w-4 h-4 rotate-90" />
+                  <ChevronUp className="w-4 h-4" />
                 </button>
                 <button
                   type="button"
@@ -118,7 +118,7 @@ function ObjectArrayField({ label, value, fields, onChange, error }: ObjectArray
                   disabled={index === value.length - 1}
                   className="p-0.5 text-muted-foreground hover:text-foreground disabled:opacity-30"
                 >
-                  <GripVertical className="w-4 h-4 rotate-90" />
+                  <ChevronDown className="w-4 h-4" />
                 </button>
               </div>
               <div className="flex-1 space-y-3">
