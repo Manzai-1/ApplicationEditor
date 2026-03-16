@@ -289,8 +289,8 @@ export function CVDataProvider({ children }: { children: ReactNode }) {
   )
 
   const updateCVName = useCallback(async (cvId: string, name: string): Promise<void> => {
-    const updated = await updateCVNameApi(cvId, name)
-    setCvList((prev) => prev.map((cv) => (cv.id === cvId ? updated : cv)))
+    await updateCVNameApi(cvId, name)
+    setCvList((prev) => prev.map((cv) => (cv.id === cvId ? { ...cv, name } : cv)))
   }, [])
 
   const deleteCV = useCallback(
