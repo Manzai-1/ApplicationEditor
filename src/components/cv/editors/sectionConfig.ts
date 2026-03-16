@@ -19,77 +19,65 @@ export const sectionConfig: SectionConfig = {
   ],
   about: [{ key: 'text', label: 'About', type: 'text' }],
   skills: [
-    {
-      key: 'skills',
-      label: 'Skills',
-      type: 'objectArray',
-      fields: [
-        { key: 'header', label: 'Category', type: 'string' },
-        { key: 'items', label: 'Skills', type: 'array' },
-      ],
-    },
+    { key: 'header', label: 'Category', type: 'string' },
+    { key: 'items', label: 'Skills', type: 'array' },
   ],
   languages: [
-    {
-      key: 'languages',
-      label: 'Languages',
-      type: 'objectArray',
-      fields: [
-        { key: 'language', label: 'Language', type: 'string' },
-        { key: 'level', label: 'Level', type: 'string' },
-      ],
-    },
+    { key: 'language', label: 'Language', type: 'string' },
+    { key: 'level', label: 'Level', type: 'string' },
   ],
   experiences: [
+    { key: 'title', label: 'Title', type: 'string' },
+    { key: 'company', label: 'Company', type: 'string' },
+    { key: 'year', label: 'Year', type: 'string' },
+    { key: 'description', label: 'Description', type: 'text' },
     {
-      key: 'experiences',
-      label: 'Experiences',
+      key: 'highlights',
+      label: 'Highlights',
       type: 'objectArray',
       fields: [
         { key: 'title', label: 'Title', type: 'string' },
-        { key: 'company', label: 'Company', type: 'string' },
-        { key: 'year', label: 'Year', type: 'string' },
         { key: 'description', label: 'Description', type: 'text' },
-        {
-          key: 'highlights',
-          label: 'Highlights',
-          type: 'objectArray',
-          fields: [
-            { key: 'title', label: 'Title', type: 'string' },
-            { key: 'description', label: 'Description', type: 'text' },
-          ],
-        },
       ],
     },
   ],
   education: [
+    { key: 'title', label: 'Title', type: 'string' },
+    { key: 'year', label: 'Year', type: 'string' },
     {
-      key: 'education',
-      label: 'Education',
+      key: 'highlights',
+      label: 'Highlights',
       type: 'objectArray',
       fields: [
         { key: 'title', label: 'Title', type: 'string' },
-        { key: 'year', label: 'Year', type: 'string' },
-        {
-          key: 'highlights',
-          label: 'Highlights',
-          type: 'objectArray',
-          fields: [
-            { key: 'title', label: 'Title', type: 'string' },
-            { key: 'description', label: 'Description', type: 'text' },
-          ],
-        },
+        { key: 'description', label: 'Description', type: 'text' },
       ],
     },
   ],
-  certifications: [
-    {
-      key: 'certifications',
-      label: 'Certifications',
-      type: 'objectArray',
-      fields: [{ key: 'title', label: 'Title', type: 'string' }],
-    },
-  ],
+  certifications: [{ key: 'title', label: 'Title', type: 'string' }],
+}
+
+export const sectionTitles: Record<string, { list: string; edit: string; new: string }> = {
+  profile: { list: 'Profile', edit: 'Edit Profile', new: 'Edit Profile' },
+  about: { list: 'About', edit: 'Edit About', new: 'New About' },
+  skills: { list: 'Skills', edit: 'Edit Skill', new: 'New Skill' },
+  languages: { list: 'Languages', edit: 'Edit Language', new: 'New Language' },
+  experiences: { list: 'Experiences', edit: 'Edit Experience', new: 'New Experience' },
+  education: { list: 'Education', edit: 'Edit Education', new: 'New Education' },
+  certifications: { list: 'Certifications', edit: 'Edit Certification', new: 'New Certification' },
+}
+
+export function getEmptyItem(section: string): Record<string, unknown> {
+  const fields = sectionConfig[section] || []
+  const item: Record<string, unknown> = {}
+  fields.forEach((field) => {
+    if (field.type === 'array' || field.type === 'objectArray') {
+      item[field.key] = []
+    } else {
+      item[field.key] = ''
+    }
+  })
+  return item
 }
 
 export function getNestedValue(obj: Record<string, unknown>, path: string): unknown {

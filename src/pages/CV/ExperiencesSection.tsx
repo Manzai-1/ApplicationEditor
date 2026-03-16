@@ -1,7 +1,7 @@
-import type { ExperiencesData } from '@/types/cv'
+import type { Experience } from '@/types/cv'
 
 interface ExperiencesSectionProps {
-  data: ExperiencesData
+  data: Experience[]
 }
 
 function ExperiencesSection({ data }: ExperiencesSectionProps) {
@@ -9,8 +9,8 @@ function ExperiencesSection({ data }: ExperiencesSectionProps) {
     <section>
       <h2 className="text-2xl font-semibold text-foreground mb-4">Experience</h2>
       <div className="space-y-6">
-        {data.experiences.map((exp) => (
-          <div key={`${exp.company}-${exp.year}`} className="grid grid-cols-[120px_1fr] gap-x-3">
+        {data.map((exp) => (
+          <div key={exp.id} className="grid grid-cols-[120px_1fr] gap-x-3">
             <span className="text-sm font-medium text-foreground">{exp.year}</span>
             <div>
               <h3 className="text-lg font-semibold text-foreground">

@@ -8,26 +8,23 @@ export interface ProfileData {
   github: { url: string; display: string }
 }
 
-export interface AboutData {
+interface BaseComponent {
+  id: string
+  sortOrder: number
+}
+
+export interface About extends BaseComponent {
   text: string
 }
 
-export interface Skill {
+export interface Skill extends BaseComponent {
   header: string
   items: string[]
 }
 
-export interface SkillsData {
-  skills: Skill[]
-}
-
-export interface Language {
+export interface Language extends BaseComponent {
   language: string
   level: string
-}
-
-export interface LanguagesData {
-  languages: Language[]
 }
 
 export interface Highlight {
@@ -35,7 +32,7 @@ export interface Highlight {
   description: string
 }
 
-export interface Experience {
+export interface Experience extends BaseComponent {
   title: string
   company: string
   year: string
@@ -43,35 +40,22 @@ export interface Experience {
   highlights: Highlight[]
 }
 
-export interface ExperiencesData {
-  experiences: Experience[]
-}
-
-export interface Education {
+export interface Education extends BaseComponent {
   title: string
   year: string
   highlights: Highlight[]
 }
 
-export interface EducationData {
-  education: Education[]
-}
-
-export interface Certification {
+export interface Certification extends BaseComponent {
   title: string
 }
 
-export interface CertificationsData {
-  certifications: Certification[]
-}
-
-// API Response Types
-export interface CVListItem {
-  id: string
-  name: string
-  created_at: string
-  updated_at: string
-}
+export type NewAbout = Omit<About, 'id' | 'sortOrder'>
+export type NewSkill = Omit<Skill, 'id' | 'sortOrder'>
+export type NewLanguage = Omit<Language, 'id' | 'sortOrder'>
+export type NewExperience = Omit<Experience, 'id' | 'sortOrder'>
+export type NewEducation = Omit<Education, 'id' | 'sortOrder'>
+export type NewCertification = Omit<Certification, 'id' | 'sortOrder'>
 
 export interface ApiComponent<T> {
   id: string
@@ -82,16 +66,43 @@ export interface ApiComponent<T> {
 export interface ApiCV {
   id: string
   name: string
+  type: number
+  created_at: string
+  updated_at: string
   about: ApiComponent<{ text: string }>[]
-  skills: ApiComponent<Skill>[]
-  languages: ApiComponent<Language>[]
-  experiences: ApiComponent<Experience>[]
-  education: ApiComponent<Education>[]
-  certifications: ApiComponent<Certification>[]
+  skills: ApiComponent<{ header: string; items: string[] }>[]
+  languages: ApiComponent<{ language: string; level: string }>[]
+  experiences: ApiComponent<{
+    title: string
+    company: string
+    year: string
+    description: string
+    highlights: Highlight[]
+  }>[]
+  education: ApiComponent<{
+    title: string
+    year: string
+    highlights: Highlight[]
+  }>[]
+  certifications: ApiComponent<{ title: string }>[]
+}
+
+export interface CVListItem {
+  id: string
+  name: string
+  type: number
+  created_at: string
+  updated_at: string
 }
 
 export interface ApiResponse<T> {
   status: 'success' | 'error'
   data?: T
   message?: string
+}
+
+export interface ComponentResponse {
+  id: string
+  content: Record<string, unknown>
+  sort_order?: number
 }

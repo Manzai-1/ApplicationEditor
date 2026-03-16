@@ -11,12 +11,12 @@ import EducationSection from '@/pages/CV/EducationSection'
 import CertificationsSection from '@/pages/CV/CertificationsSection'
 import type {
   ProfileData,
-  AboutData,
-  SkillsData,
-  LanguagesData,
-  ExperiencesData,
-  EducationData,
-  CertificationsData,
+  About,
+  Skill,
+  Language,
+  Experience,
+  Education,
+  Certification,
 } from '@/types/cv'
 
 type SectionType =
@@ -30,12 +30,12 @@ type SectionType =
 
 type SectionData =
   | ProfileData
-  | AboutData
-  | SkillsData
-  | LanguagesData
-  | ExperiencesData
-  | EducationData
-  | CertificationsData
+  | About[]
+  | Skill[]
+  | Language[]
+  | Experience[]
+  | Education[]
+  | Certification[]
 
 function CV() {
   const {
@@ -43,19 +43,12 @@ function CV() {
     error,
     selectedCvId,
     profileData,
-    aboutData,
-    skillsData,
-    languagesData,
-    experiencesData,
-    educationData,
-    certificationsData,
-    updateProfile,
-    updateAbout,
-    updateSkills,
-    updateLanguages,
-    updateExperiences,
-    updateEducation,
-    updateCertifications,
+    about,
+    skills,
+    languages,
+    experiences,
+    education,
+    certifications,
   } = useCVData()
 
   const [editingSection, setEditingSection] = useState<SectionType | null>(null)
@@ -86,38 +79,12 @@ function CV() {
 
   const sectionDataMap: Record<SectionType, SectionData | null> = {
     profile: profileData,
-    about: aboutData,
-    skills: skillsData,
-    languages: languagesData,
-    experiences: experiencesData,
-    education: educationData,
-    certifications: certificationsData,
-  }
-
-  const handleSave = async (data: SectionData) => {
-    switch (editingSection) {
-      case 'profile':
-        await updateProfile(data as ProfileData)
-        break
-      case 'about':
-        await updateAbout(data as AboutData)
-        break
-      case 'skills':
-        await updateSkills(data as SkillsData)
-        break
-      case 'languages':
-        await updateLanguages(data as LanguagesData)
-        break
-      case 'experiences':
-        await updateExperiences(data as ExperiencesData)
-        break
-      case 'education':
-        await updateEducation(data as EducationData)
-        break
-      case 'certifications':
-        await updateCertifications(data as CertificationsData)
-        break
-    }
+    about,
+    skills,
+    languages,
+    experiences,
+    education,
+    certifications,
   }
 
   return (
@@ -126,34 +93,34 @@ function CV() {
         <EditableBlock onEdit={() => setEditingSection('profile')}>
           <ProfileSection data={profileData} />
         </EditableBlock>
-        {aboutData && (
+        {about.length > 0 && (
           <EditableBlock onEdit={() => setEditingSection('about')}>
-            <AboutSection data={aboutData} />
+            <AboutSection data={about} />
           </EditableBlock>
         )}
-        {skillsData && (
+        {skills.length > 0 && (
           <EditableBlock onEdit={() => setEditingSection('skills')}>
-            <SkillsSection data={skillsData} />
+            <SkillsSection data={skills} />
           </EditableBlock>
         )}
-        {languagesData && (
+        {languages.length > 0 && (
           <EditableBlock onEdit={() => setEditingSection('languages')}>
-            <LanguagesSection data={languagesData} />
+            <LanguagesSection data={languages} />
           </EditableBlock>
         )}
-        {experiencesData && (
+        {experiences.length > 0 && (
           <EditableBlock onEdit={() => setEditingSection('experiences')}>
-            <ExperiencesSection data={experiencesData} />
+            <ExperiencesSection data={experiences} />
           </EditableBlock>
         )}
-        {educationData && (
+        {education.length > 0 && (
           <EditableBlock onEdit={() => setEditingSection('education')}>
-            <EducationSection data={educationData} />
+            <EducationSection data={education} />
           </EditableBlock>
         )}
-        {certificationsData && (
+        {certifications.length > 0 && (
           <EditableBlock onEdit={() => setEditingSection('certifications')}>
-            <CertificationsSection data={certificationsData} />
+            <CertificationsSection data={certifications} />
           </EditableBlock>
         )}
       </div>
@@ -164,7 +131,6 @@ function CV() {
           onClose={() => setEditingSection(null)}
           section={editingSection}
           data={sectionDataMap[editingSection]!}
-          onSave={handleSave}
         />
       )}
     </>

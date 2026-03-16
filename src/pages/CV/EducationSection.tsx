@@ -1,7 +1,7 @@
-import type { EducationData } from '@/types/cv'
+import type { Education } from '@/types/cv'
 
 interface EducationSectionProps {
-  data: EducationData
+  data: Education[]
 }
 
 function EducationSection({ data }: EducationSectionProps) {
@@ -9,8 +9,8 @@ function EducationSection({ data }: EducationSectionProps) {
     <section>
       <h2 className="text-2xl font-semibold text-foreground mb-4">Education</h2>
       <div className="space-y-6">
-        {data.education.map((edu) => (
-          <div key={edu.title} className="grid grid-cols-[120px_1fr] gap-x-3">
+        {data.map((edu) => (
+          <div key={edu.id} className="grid grid-cols-[120px_1fr] gap-x-3">
             <span className="text-sm font-medium text-foreground">{edu.year}</span>
             <div>
               <h3 className="text-lg font-semibold text-foreground">{edu.title}</h3>

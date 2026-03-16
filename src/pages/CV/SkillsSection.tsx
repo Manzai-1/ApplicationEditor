@@ -1,7 +1,7 @@
-import type { SkillsData } from '@/types/cv'
+import type { Skill } from '@/types/cv'
 
 interface SkillsSectionProps {
-  data: SkillsData
+  data: Skill[]
 }
 
 function SkillsSection({ data }: SkillsSectionProps) {
@@ -9,8 +9,8 @@ function SkillsSection({ data }: SkillsSectionProps) {
     <section>
       <h2 className="text-2xl font-semibold text-foreground mb-3">Skills</h2>
       <div className="space-y-2">
-        {data.skills.map((skill) => (
-          <p key={skill.header}>
+        {data.map((skill) => (
+          <p key={skill.id}>
             <span className="font-semibold text-foreground">{skill.header}:</span>{' '}
             <span className="text-foreground">{skill.items.join(', ')}</span>
           </p>

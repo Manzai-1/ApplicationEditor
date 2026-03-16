@@ -1,14 +1,20 @@
-import type { AboutData } from '@/types/cv'
+import type { About } from '@/types/cv'
 
 interface AboutSectionProps {
-  data: AboutData
+  data: About[]
 }
 
 function AboutSection({ data }: AboutSectionProps) {
   return (
     <section>
       <h2 className="text-2xl font-semibold text-foreground mb-3">About</h2>
-      <p className="text-foreground leading-relaxed">{data.text}</p>
+      <div className="space-y-3">
+        {data.map((item) => (
+          <p key={item.id} className="text-foreground leading-relaxed">
+            {item.text}
+          </p>
+        ))}
+      </div>
     </section>
   )
 }

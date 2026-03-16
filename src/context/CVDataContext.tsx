@@ -1,50 +1,141 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react'
 import type {
   ProfileData,
-  AboutData,
-  SkillsData,
-  LanguagesData,
-  ExperiencesData,
-  EducationData,
-  CertificationsData,
   CVListItem,
+  About,
+  Skill,
+  Language,
+  Experience,
+  Education,
+  Certification,
+  NewAbout,
+  NewSkill,
+  NewLanguage,
+  NewExperience,
+  NewEducation,
+  NewCertification,
 } from '@/types/cv'
 import { getProfile, updateProfile as updateProfileApi } from '@/services/profile'
-import { getCVList, getCV, transformApiCV, updateComponent } from '@/services/cv'
+import {
+  getCVList,
+  getCV,
+  transformApiCV,
+  transformComponentResponse,
+  createComponent,
+  updateComponent,
+  deleteComponent,
+  reorderComponents,
+  type ComponentType,
+} from '@/services/cv'
+
+type BaseComponent = { id: string; sortOrder: number }
+
+interface ComponentCRUD<T extends BaseComponent, TNew> {
+  create: (content: TNew) => Promise<T>
+  update: (id: string, content: Omit<T, 'id' | 'sortOrder'>) => Promise<void>
+  delete: (id: string) => Promise<void>
+  reorder: (orderedIds: string[]) => Promise<void>
+}
 
 interface CVDataContextValue {
-  // Loading states
   isLoading: boolean
   error: string | null
 
-  // CV list
   cvList: CVListItem[]
   selectedCvId: string | null
   selectCV: (cvId: string) => Promise<void>
-
-  // Data
-  profileData: ProfileData | null
-  aboutData: AboutData | null
-  skillsData: SkillsData | null
-  languagesData: LanguagesData | null
-  experiencesData: ExperiencesData | null
-  educationData: EducationData | null
-  certificationsData: CertificationsData | null
-
-  // Update functions
-  updateProfile: (data: ProfileData) => Promise<void>
-  updateAbout: (data: AboutData) => Promise<void>
-  updateSkills: (data: SkillsData) => Promise<void>
-  updateLanguages: (data: LanguagesData) => Promise<void>
-  updateExperiences: (data: ExperiencesData) => Promise<void>
-  updateEducation: (data: EducationData) => Promise<void>
-  updateCertifications: (data: CertificationsData) => Promise<void>
-
-  // Reload
   refreshCV: () => Promise<void>
+
+  profileData: ProfileData | null
+  about: About[]
+  skills: Skill[]
+  languages: Language[]
+  experiences: Experience[]
+  education: Education[]
+  certifications: Certification[]
+
+  updateProfile: (data: ProfileData) => Promise<void>
+
+  createAbout: (content: NewAbout) => Promise<About>
+  updateAbout: (id: string, content: Omit<About, 'id' | 'sortOrder'>) => Promise<void>
+  deleteAbout: (id: string) => Promise<void>
+  reorderAbout: (orderedIds: string[]) => Promise<void>
+
+  createSkill: (content: NewSkill) => Promise<Skill>
+  updateSkill: (id: string, content: Omit<Skill, 'id' | 'sortOrder'>) => Promise<void>
+  deleteSkill: (id: string) => Promise<void>
+  reorderSkills: (orderedIds: string[]) => Promise<void>
+
+  createLanguage: (content: NewLanguage) => Promise<Language>
+  updateLanguage: (id: string, content: Omit<Language, 'id' | 'sortOrder'>) => Promise<void>
+  deleteLanguage: (id: string) => Promise<void>
+  reorderLanguages: (orderedIds: string[]) => Promise<void>
+
+  createExperience: (content: NewExperience) => Promise<Experience>
+  updateExperience: (id: string, content: Omit<Experience, 'id' | 'sortOrder'>) => Promise<void>
+  deleteExperience: (id: string) => Promise<void>
+  reorderExperiences: (orderedIds: string[]) => Promise<void>
+
+  createEducation: (content: NewEducation) => Promise<Education>
+  updateEducation: (id: string, content: Omit<Education, 'id' | 'sortOrder'>) => Promise<void>
+  deleteEducation: (id: string) => Promise<void>
+  reorderEducation: (orderedIds: string[]) => Promise<void>
+
+  createCertification: (content: NewCertification) => Promise<Certification>
+  updateCertification: (id: string, content: Omit<Certification, 'id' | 'sortOrder'>) => Promise<void>
+  deleteCertification: (id: string) => Promise<void>
+  reorderCertifications: (orderedIds: string[]) => Promise<void>
 }
 
 const CVDataContext = createContext<CVDataContextValue | null>(null)
+
+function createCRUDFactory<T extends BaseComponent, TNew>(
+  componentType: ComponentType,
+  getState: () => T[],
+  setState: React.Dispatch<React.SetStateAction<T[]>>,
+  getCvId: () => string | null
+): ComponentCRUD<T, TNew> {
+  return {
+    create: async (content: TNew): Promise<T> => {
+      const cvId = getCvId()
+      if (!cvId) throw new Error('No CV selected')
+
+      const response = await createComponent(cvId, componentType, content)
+      const created = transformComponentResponse<T>(response)
+      setState((prev) => [...prev, created])
+      return created
+    },
+
+    update: async (id: string, content: Omit<T, 'id' | 'sortOrder'>): Promise<void> => {
+      const response = await updateComponent(componentType, id, content)
+      const current = getState().find((item) => item.id === id)
+      const updated = transformComponentResponse<T>(response, current?.sortOrder)
+      setState((prev) => prev.map((item) => (item.id === id ? updated : item)))
+    },
+
+    delete: async (id: string): Promise<void> => {
+      const cvId = getCvId()
+      if (!cvId) throw new Error('No CV selected')
+
+      await deleteComponent(cvId, componentType, id)
+      setState((prev) => prev.filter((item) => item.id !== id))
+    },
+
+    reorder: async (orderedIds: string[]): Promise<void> => {
+      const cvId = getCvId()
+      if (!cvId) throw new Error('No CV selected')
+
+      await reorderComponents(cvId, componentType, orderedIds)
+      setState((prev) => {
+        const itemMap = new Map(prev.map((item) => [item.id, item]))
+        return orderedIds.map((id, index) => ({
+          ...itemMap.get(id)!,
+          sortOrder: index,
+        }))
+      })
+    },
+  }
+}
 
 export function CVDataProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
@@ -54,36 +145,78 @@ export function CVDataProvider({ children }: { children: ReactNode }) {
   const [selectedCvId, setSelectedCvId] = useState<string | null>(null)
 
   const [profileData, setProfileData] = useState<ProfileData | null>(null)
-  const [aboutData, setAboutData] = useState<(AboutData & { _id?: string }) | null>(null)
-  const [skillsData, setSkillsData] = useState<SkillsData | null>(null)
-  const [languagesData, setLanguagesData] = useState<LanguagesData | null>(null)
-  const [experiencesData, setExperiencesData] = useState<ExperiencesData | null>(null)
-  const [educationData, setEducationData] = useState<EducationData | null>(null)
-  const [certificationsData, setCertificationsData] = useState<CertificationsData | null>(null)
+  const [about, setAbout] = useState<About[]>([])
+  const [skills, setSkills] = useState<Skill[]>([])
+  const [languages, setLanguages] = useState<Language[]>([])
+  const [experiences, setExperiences] = useState<Experience[]>([])
+  const [education, setEducation] = useState<Education[]>([])
+  const [certifications, setCertifications] = useState<Certification[]>([])
+
+  const getCvId = useCallback(() => selectedCvId, [selectedCvId])
+
+  const aboutCRUD = createCRUDFactory<About, NewAbout>(
+    'about',
+    () => about,
+    setAbout,
+    getCvId
+  )
+  const skillCRUD = createCRUDFactory<Skill, NewSkill>(
+    'skill',
+    () => skills,
+    setSkills,
+    getCvId
+  )
+  const languageCRUD = createCRUDFactory<Language, NewLanguage>(
+    'language',
+    () => languages,
+    setLanguages,
+    getCvId
+  )
+  const experienceCRUD = createCRUDFactory<Experience, NewExperience>(
+    'experience',
+    () => experiences,
+    setExperiences,
+    getCvId
+  )
+  const educationCRUD = createCRUDFactory<Education, NewEducation>(
+    'education',
+    () => education,
+    setEducation,
+    getCvId
+  )
+  const certificationCRUD = createCRUDFactory<Certification, NewCertification>(
+    'certification',
+    () => certifications,
+    setCertifications,
+    getCvId
+  )
 
   const loadCV = useCallback(async (cvId: string) => {
     const apiCV = await getCV(cvId)
     const transformed = transformApiCV(apiCV)
-    setAboutData(transformed.aboutData)
-    setSkillsData(transformed.skillsData)
-    setLanguagesData(transformed.languagesData)
-    setExperiencesData(transformed.experiencesData)
-    setEducationData(transformed.educationData)
-    setCertificationsData(transformed.certificationsData)
+    setAbout(transformed.about)
+    setSkills(transformed.skills)
+    setLanguages(transformed.languages)
+    setExperiences(transformed.experiences)
+    setEducation(transformed.education)
+    setCertifications(transformed.certifications)
   }, [])
 
-  const selectCV = useCallback(async (cvId: string) => {
-    setIsLoading(true)
-    setError(null)
-    try {
-      await loadCV(cvId)
-      setSelectedCvId(cvId)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load CV')
-    } finally {
-      setIsLoading(false)
-    }
-  }, [loadCV])
+  const selectCV = useCallback(
+    async (cvId: string) => {
+      setIsLoading(true)
+      setError(null)
+      try {
+        await loadCV(cvId)
+        setSelectedCvId(cvId)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load CV')
+      } finally {
+        setIsLoading(false)
+      }
+    },
+    [loadCV]
+  )
 
   const refreshCV = useCallback(async () => {
     if (!selectedCvId) return
@@ -98,7 +231,6 @@ export function CVDataProvider({ children }: { children: ReactNode }) {
     }
   }, [selectedCvId, loadCV])
 
-  // Initial load
   useEffect(() => {
     async function init() {
       setIsLoading(true)
@@ -127,36 +259,6 @@ export function CVDataProvider({ children }: { children: ReactNode }) {
     setProfileData(updated)
   }
 
-  const updateAbout = async (data: AboutData): Promise<void> => {
-    const current = aboutData as AboutData & { _id?: string }
-    if (current?._id) {
-      await updateComponent('about', current._id, { text: data.text })
-    }
-    setAboutData({ ...data, _id: current?._id })
-  }
-
-  const updateSkills = async (data: SkillsData): Promise<void> => {
-    // For now, update local state - full sync requires more complex diffing
-    // This will be enhanced when we add create/delete/reorder support
-    setSkillsData(data)
-  }
-
-  const updateLanguages = async (data: LanguagesData): Promise<void> => {
-    setLanguagesData(data)
-  }
-
-  const updateExperiences = async (data: ExperiencesData): Promise<void> => {
-    setExperiencesData(data)
-  }
-
-  const updateEducation = async (data: EducationData): Promise<void> => {
-    setEducationData(data)
-  }
-
-  const updateCertifications = async (data: CertificationsData): Promise<void> => {
-    setCertificationsData(data)
-  }
-
   return (
     <CVDataContext.Provider
       value={{
@@ -165,21 +267,39 @@ export function CVDataProvider({ children }: { children: ReactNode }) {
         cvList,
         selectedCvId,
         selectCV,
-        profileData,
-        aboutData,
-        skillsData,
-        languagesData,
-        experiencesData,
-        educationData,
-        certificationsData,
-        updateProfile,
-        updateAbout,
-        updateSkills,
-        updateLanguages,
-        updateExperiences,
-        updateEducation,
-        updateCertifications,
         refreshCV,
+        profileData,
+        about,
+        skills,
+        languages,
+        experiences,
+        education,
+        certifications,
+        updateProfile,
+        createAbout: aboutCRUD.create,
+        updateAbout: aboutCRUD.update,
+        deleteAbout: aboutCRUD.delete,
+        reorderAbout: aboutCRUD.reorder,
+        createSkill: skillCRUD.create,
+        updateSkill: skillCRUD.update,
+        deleteSkill: skillCRUD.delete,
+        reorderSkills: skillCRUD.reorder,
+        createLanguage: languageCRUD.create,
+        updateLanguage: languageCRUD.update,
+        deleteLanguage: languageCRUD.delete,
+        reorderLanguages: languageCRUD.reorder,
+        createExperience: experienceCRUD.create,
+        updateExperience: experienceCRUD.update,
+        deleteExperience: experienceCRUD.delete,
+        reorderExperiences: experienceCRUD.reorder,
+        createEducation: educationCRUD.create,
+        updateEducation: educationCRUD.update,
+        deleteEducation: educationCRUD.delete,
+        reorderEducation: educationCRUD.reorder,
+        createCertification: certificationCRUD.create,
+        updateCertification: certificationCRUD.update,
+        deleteCertification: certificationCRUD.delete,
+        reorderCertifications: certificationCRUD.reorder,
       }}
     >
       {children}
