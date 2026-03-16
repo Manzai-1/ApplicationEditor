@@ -34,14 +34,12 @@ interface CVEditModalProps {
   data: SectionData
 }
 
-const arraySections = ['about', 'skills', 'languages', 'experiences', 'education', 'certifications']
-
 function CVEditModal({ open, onClose, section, data }: CVEditModalProps) {
   const ctx = useCVData()
-  const isArraySection = arraySections.includes(section)
 
   const [view, setView] = useState<'list' | 'detail'>('list')
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null)
+  const [editingItem, setEditingItem] = useState<Record<string, unknown> | null>(null)
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
 
   const [profileData, setProfileData] = useState<ProfileData | null>(null)
@@ -57,6 +55,7 @@ function CVEditModal({ open, onClose, section, data }: CVEditModalProps) {
         setView('list')
       }
       setSelectedItemId(null)
+      setEditingItem(null)
       setHasUnsavedChanges(false)
       setSaveError(null)
     }
@@ -71,11 +70,18 @@ function CVEditModal({ open, onClose, section, data }: CVEditModalProps) {
   }, [hasUnsavedChanges, onClose])
 
   const handleSelectItem = (id: string) => {
+    const items = data as SectionItem[]
+    const item = items.find((i) => i.id === id)
+    if (item) {
+      const { id: _id, sortOrder: _sortOrder, ...content } = item
+      setEditingItem(content)
+    }
     setSelectedItemId(id)
     setView('detail')
   }
 
   const handleAddNew = () => {
+    setEditingItem(null)
     setSelectedItemId(null)
     setView('detail')
   }
@@ -85,19 +91,11 @@ function CVEditModal({ open, onClose, section, data }: CVEditModalProps) {
       const confirmed = window.confirm('You have unsaved changes. Are you sure you want to go back?')
       if (!confirmed) return
     }
+    setEditingItem(null)
     setView('list')
     setSelectedItemId(null)
     setHasUnsavedChanges(false)
   }, [hasUnsavedChanges])
-
-  const getSelectedItem = (): Record<string, unknown> | null => {
-    if (!isArraySection || selectedItemId === null) return null
-    const items = data as SectionItem[]
-    const item = items.find((i) => i.id === selectedItemId)
-    if (!item) return null
-    const { id: _id, sortOrder: _sortOrder, ...content } = item
-    return content
-  }
 
   const handleSaveItem = async (content: Record<string, unknown>) => {
     const isNew = selectedItemId === null
@@ -150,6 +148,7 @@ function CVEditModal({ open, onClose, section, data }: CVEditModalProps) {
         break
     }
 
+    setEditingItem(null)
     setHasUnsavedChanges(false)
     setView('list')
     setSelectedItemId(null)
@@ -179,6 +178,7 @@ function CVEditModal({ open, onClose, section, data }: CVEditModalProps) {
         break
     }
 
+    setEditingItem(null)
     setHasUnsavedChanges(false)
     setView('list')
     setSelectedItemId(null)
@@ -291,7 +291,7 @@ function CVEditModal({ open, onClose, section, data }: CVEditModalProps) {
     return (
       <CVEditDetailView
         section={section}
-        item={getSelectedItem()}
+        item={editingItem}
         onSave={handleSaveItem}
         onBack={handleBackToList}
         onClose={handleClose}

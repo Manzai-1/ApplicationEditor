@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import ConfirmDialog from '@/components/ui/ConfirmDialog'
 import { ArrowLeft, Trash2, X } from '@/components/icons'
@@ -65,36 +65,31 @@ function CVEditDetailView({
   const [isDeleting, setIsDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
 
-  const checkUnsavedChanges = useCallback(
-    (content: Record<string, unknown>) => {
-      if (isNew) {
-        const hasContent = Object.values(content).some((v) => {
-          if (Array.isArray(v)) return v.length > 0
-          if (typeof v === 'string') return v.trim().length > 0
-          return false
-        })
-        onUnsavedChangesChange(hasContent)
-      } else {
-        const hasChanges = JSON.stringify(content) !== JSON.stringify(item)
-        onUnsavedChangesChange(hasChanges)
-      }
-    },
-    [isNew, item, onUnsavedChangesChange]
-  )
+  const onUnsavedChangesChangeRef = useRef(onUnsavedChangesChange)
+  onUnsavedChangesChangeRef.current = onUnsavedChangesChange
 
   useEffect(() => {
     const data = item ?? getEmptyItem(section)
     setEditedContent(data)
     setSaveError(null)
-    onUnsavedChangesChange(false)
-  }, [item, section, onUnsavedChangesChange])
+  }, [item, section])
+
+  useEffect(() => {
+    if (isNew) {
+      const hasContent = Object.values(editedContent).some((v) => {
+        if (Array.isArray(v)) return v.length > 0
+        if (typeof v === 'string') return v.trim().length > 0
+        return false
+      })
+      onUnsavedChangesChangeRef.current(hasContent)
+    } else {
+      const hasChanges = JSON.stringify(editedContent) !== JSON.stringify(item)
+      onUnsavedChangesChangeRef.current(hasChanges)
+    }
+  }, [editedContent, item, isNew])
 
   const handleFieldChange = (key: string, value: unknown) => {
-    setEditedContent((prev) => {
-      const updated = { ...prev, [key]: value }
-      checkUnsavedChanges(updated)
-      return updated
-    })
+    setEditedContent((prev) => ({ ...prev, [key]: value }))
   }
 
   const handleSave = async () => {
