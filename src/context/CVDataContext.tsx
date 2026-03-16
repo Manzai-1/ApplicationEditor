@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react'
+import { createContext, useContext, useState, useEffect, useCallback, useMemo, type ReactNode } from 'react'
 import type {
   ProfileData,
   CVListItem,
@@ -25,8 +25,12 @@ import {
   updateComponent,
   deleteComponent,
   reorderComponents,
+  createCV as createCVApi,
+  updateCVName as updateCVNameApi,
+  deleteCV as deleteCVApi,
   type ComponentType,
 } from '@/services/cv'
+import { useAuth } from '@/hooks/useAuth'
 
 type BaseComponent = { id: string; sortOrder: number }
 
@@ -38,13 +42,24 @@ interface ComponentCRUD<T extends BaseComponent, TNew> {
 }
 
 interface CVDataContextValue {
-  isLoading: boolean
+  isListLoading: boolean
+  isContentLoading: boolean
   error: string | null
 
   cvList: CVListItem[]
+  templates: CVListItem[]
+  applications: CVListItem[]
+  fetchCVList: () => Promise<void>
+
   selectedCvId: string | null
+  selectedCV: CVListItem | null
   selectCV: (cvId: string) => Promise<void>
+  clearSelection: () => void
   refreshCV: () => Promise<void>
+
+  createCV: (type: 0 | 1, name: string) => Promise<string>
+  updateCVName: (cvId: string, name: string) => Promise<void>
+  deleteCV: (cvId: string) => Promise<void>
 
   profileData: ProfileData | null
   about: About[]
@@ -137,8 +152,28 @@ function createCRUDFactory<T extends BaseComponent, TNew>(
   }
 }
 
+function clearComponentState(
+  setAbout: React.Dispatch<React.SetStateAction<About[]>>,
+  setSkills: React.Dispatch<React.SetStateAction<Skill[]>>,
+  setLanguages: React.Dispatch<React.SetStateAction<Language[]>>,
+  setExperiences: React.Dispatch<React.SetStateAction<Experience[]>>,
+  setEducation: React.Dispatch<React.SetStateAction<Education[]>>,
+  setCertifications: React.Dispatch<React.SetStateAction<Certification[]>>
+) {
+  setAbout([])
+  setSkills([])
+  setLanguages([])
+  setExperiences([])
+  setEducation([])
+  setCertifications([])
+}
+
 export function CVDataProvider({ children }: { children: ReactNode }) {
-  const [isLoading, setIsLoading] = useState(true)
+  const { user } = useAuth()
+  const isAuthenticated = !!user
+
+  const [isListLoading, setIsListLoading] = useState(false)
+  const [isContentLoading, setIsContentLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const [cvList, setCvList] = useState<CVListItem[]>([])
@@ -154,24 +189,9 @@ export function CVDataProvider({ children }: { children: ReactNode }) {
 
   const getCvId = useCallback(() => selectedCvId, [selectedCvId])
 
-  const aboutCRUD = createCRUDFactory<About, NewAbout>(
-    'about',
-    () => about,
-    setAbout,
-    getCvId
-  )
-  const skillCRUD = createCRUDFactory<Skill, NewSkill>(
-    'skill',
-    () => skills,
-    setSkills,
-    getCvId
-  )
-  const languageCRUD = createCRUDFactory<Language, NewLanguage>(
-    'language',
-    () => languages,
-    setLanguages,
-    getCvId
-  )
+  const aboutCRUD = createCRUDFactory<About, NewAbout>('about', () => about, setAbout, getCvId)
+  const skillCRUD = createCRUDFactory<Skill, NewSkill>('skill', () => skills, setSkills, getCvId)
+  const languageCRUD = createCRUDFactory<Language, NewLanguage>('language', () => languages, setLanguages, getCvId)
   const experienceCRUD = createCRUDFactory<Experience, NewExperience>(
     'experience',
     () => experiences,
@@ -191,6 +211,29 @@ export function CVDataProvider({ children }: { children: ReactNode }) {
     getCvId
   )
 
+  const templates = useMemo(() => cvList.filter((cv) => cv.type === 0), [cvList])
+  const applications = useMemo(() => cvList.filter((cv) => cv.type === 1), [cvList])
+
+  const selectedCV = useMemo(
+    () => cvList.find((cv) => cv.id === selectedCvId) ?? null,
+    [cvList, selectedCvId]
+  )
+
+  const fetchCVList = useCallback(async () => {
+    if (!isAuthenticated) return
+
+    setIsListLoading(true)
+    setError(null)
+    try {
+      const cvs = await getCVList()
+      setCvList(cvs)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch CV list')
+    } finally {
+      setIsListLoading(false)
+    }
+  }, [isAuthenticated])
+
   const loadCV = useCallback(async (cvId: string) => {
     const apiCV = await getCV(cvId)
     const transformed = transformApiCV(apiCV)
@@ -204,7 +247,7 @@ export function CVDataProvider({ children }: { children: ReactNode }) {
 
   const selectCV = useCallback(
     async (cvId: string) => {
-      setIsLoading(true)
+      setIsContentLoading(true)
       setError(null)
       try {
         await loadCV(cvId)
@@ -212,62 +255,103 @@ export function CVDataProvider({ children }: { children: ReactNode }) {
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load CV')
       } finally {
-        setIsLoading(false)
+        setIsContentLoading(false)
       }
     },
     [loadCV]
   )
 
+  const clearSelection = useCallback(() => {
+    setSelectedCvId(null)
+    clearComponentState(setAbout, setSkills, setLanguages, setExperiences, setEducation, setCertifications)
+  }, [])
+
   const refreshCV = useCallback(async () => {
     if (!selectedCvId) return
-    setIsLoading(true)
+    setIsContentLoading(true)
     setError(null)
     try {
       await loadCV(selectedCvId)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to refresh CV')
     } finally {
-      setIsLoading(false)
+      setIsContentLoading(false)
     }
   }, [selectedCvId, loadCV])
 
-  useEffect(() => {
-    async function init() {
-      setIsLoading(true)
-      setError(null)
-      try {
-        const [profile, cvs] = await Promise.all([getProfile(), getCVList()])
-        setProfileData(profile)
-        setCvList(cvs)
+  const createCV = useCallback(
+    async (type: 0 | 1, name: string): Promise<string> => {
+      const newCV = await createCVApi(type, name)
+      setCvList((prev) => [...prev, newCV])
+      return newCV.id
+    },
+    []
+  )
 
-        if (cvs.length > 0) {
-          const firstCvId = cvs[0].id
-          await loadCV(firstCvId)
-          setSelectedCvId(firstCvId)
-        }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load data')
-      } finally {
-        setIsLoading(false)
+  const updateCVName = useCallback(async (cvId: string, name: string): Promise<void> => {
+    const updated = await updateCVNameApi(cvId, name)
+    setCvList((prev) => prev.map((cv) => (cv.id === cvId ? updated : cv)))
+  }, [])
+
+  const deleteCV = useCallback(
+    async (cvId: string): Promise<void> => {
+      await deleteCVApi(cvId)
+      setCvList((prev) => prev.filter((cv) => cv.id !== cvId))
+      if (selectedCvId === cvId) {
+        clearSelection()
       }
-    }
-    init()
-  }, [loadCV])
+    },
+    [selectedCvId, clearSelection]
+  )
 
   const updateProfile = async (data: ProfileData): Promise<void> => {
     const updated = await updateProfileApi(data)
     setProfileData(updated)
   }
 
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setCvList([])
+      setSelectedCvId(null)
+      setProfileData(null)
+      clearComponentState(setAbout, setSkills, setLanguages, setExperiences, setEducation, setCertifications)
+      return
+    }
+
+    async function init() {
+      setIsListLoading(true)
+      setError(null)
+      try {
+        const [profile, cvs] = await Promise.all([getProfile(), getCVList()])
+        setProfileData(profile)
+        setCvList(cvs)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load data')
+      } finally {
+        setIsListLoading(false)
+      }
+    }
+    init()
+  }, [isAuthenticated])
+
   return (
     <CVDataContext.Provider
       value={{
-        isLoading,
+        isListLoading,
+        isContentLoading,
         error,
         cvList,
+        templates,
+        applications,
+        fetchCVList,
         selectedCvId,
+        selectedCV,
         selectCV,
+        clearSelection,
         refreshCV,
+        createCV,
+        updateCVName,
+        deleteCV,
         profileData,
         about,
         skills,

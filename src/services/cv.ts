@@ -207,3 +207,62 @@ export async function deleteComponent(
     throw new Error(result.message || 'Failed to delete component')
   }
 }
+
+export async function createCV(type: 0 | 1, name: string): Promise<CVListItem> {
+  const response = await fetch(`${apiBaseUrl}/cv`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ type, name }),
+  })
+
+  if (!response.ok) {
+    const error = await response.json()
+    throw new Error(error.message || 'Failed to create CV')
+  }
+
+  const result: ApiResponse<CVListItem> = await response.json()
+  if (result.status === 'error') {
+    throw new Error(result.message || 'Failed to create CV')
+  }
+
+  return result.data!
+}
+
+export async function updateCVName(cvId: string, name: string): Promise<CVListItem> {
+  const response = await fetch(`${apiBaseUrl}/cv/${cvId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ name }),
+  })
+
+  if (!response.ok) {
+    const error = await response.json()
+    throw new Error(error.message || 'Failed to update CV name')
+  }
+
+  const result: ApiResponse<CVListItem> = await response.json()
+  if (result.status === 'error') {
+    throw new Error(result.message || 'Failed to update CV name')
+  }
+
+  return result.data!
+}
+
+export async function deleteCV(cvId: string): Promise<void> {
+  const response = await fetch(`${apiBaseUrl}/cv/${cvId}`, {
+    method: 'DELETE',
+    credentials: 'include',
+  })
+
+  if (!response.ok) {
+    const error = await response.json()
+    throw new Error(error.message || 'Failed to delete CV')
+  }
+
+  const result: ApiResponse<unknown> = await response.json()
+  if (result.status === 'error') {
+    throw new Error(result.message || 'Failed to delete CV')
+  }
+}
